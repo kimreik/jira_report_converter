@@ -12,9 +12,11 @@ class TimeTracking:
         self.date = date
         self.time = time
         desctiption = desctiption.strip()
-        match = re.search(r'[^\r\n]\n', desctiption)
+        # Заменяем LF на CRLF
+        match = re.search(r'[^\r]\n', desctiption)
         if match:
-            desctiption = re.sub(r'\n', r'\n', desctiption)
+            desctiption = re.sub(r'\r', '', desctiption)
+            desctiption = re.sub(r'\n', '\r\n', desctiption)
         self.description = desctiption
 
 
