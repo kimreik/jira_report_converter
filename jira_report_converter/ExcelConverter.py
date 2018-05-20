@@ -1,3 +1,5 @@
+import io
+import re
 import datetime
 
 import xlrd as xlrd
@@ -9,6 +11,10 @@ class TimeTracking:
     def __init__(self, date, time, desctiption):
         self.date = date
         self.time = time
+        desctiption = desctiption.strip()
+        match = re.search(r'[^\r\n]\n', desctiption)
+        if match:
+            desctiption = re.sub(r'\n', r'\n', desctiption)
         self.description = desctiption
 
 
@@ -18,16 +24,23 @@ class ExcelConverter:
         self.wb = xlrd.open_workbook(file_contents=file.read())
 
     def get_file_name(self):
-        date = self.get_some_date()
-        name = self.get_developer()
+        file_name = 'report_111.xls'
+        try:
+            date = self.get_some_date()
+            name0 = self.get_developer().split()
+            name = name0[1] + ' ' + name0[0][0:1] + '.'
 
-        month = str(date.month)
-        month = month if len(month) == 2 else '0' + month
+            month = str(date.month)
+            month = month if len(month) == 2 else '0' + month
 
-        return 'Отчёт о работе за '+month+'.'+str(date.year)+', '+name+'.xlsx'
+            file_name = 'Отчёт о работе за ' + month + '.' + str(date.year) + ', ' + name + '.xlsx'
+        except Exception as e:
+            print(e)
+        return file_name
 
-    def convert(self, response):
-        book = Workbook(response, {'in_memory': True})
+    def convert(self):
+        outBytes = io.BytesIO()
+        book = Workbook(outBytes, {'in_memory': True})
         sheet = book.add_worksheet('Лист1')
         sheet.write(0, 0, 'Разработчик')
         sheet.write(0, 1, 'Дата')
@@ -49,6 +62,7 @@ class ExcelConverter:
         sheet.set_column(3, 3, 80)
 
         book.close()
+        return outBytes
 
     def get_developer(self):
         ws = self.wb.sheet_by_index(0)
